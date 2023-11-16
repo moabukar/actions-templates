@@ -1,0 +1,29 @@
+name: Reusable Terraform Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      terraform_version:
+        description: 'Terraform version to use'
+        required: true
+      tf_action_path:
+        description: 'Path to the Terraform action (e.g., apply, plan, etc.)'
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: ${{ github.event.inputs.terraform_version }}
+
+      - name: Run Terraform Action
+        run: |
+          terraform init
+          terraform ${{ github.event.inputs.tf_action_path }}
