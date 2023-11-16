@@ -1,0 +1,11 @@
+name: 'Validate Terraform action'
+description: 'Validate Terraform'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Terraform CLI
+      uses: hashicorp/setup-terraform@v2
+    - name: Terraform format files
+      shell: bash
+      run: terraform fmt -check -recursive
