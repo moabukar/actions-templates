@@ -97,3 +97,40 @@ jobs:
           target-repo: ${{ github.repository }}
 
 ```
+
+
+### Trivy scan
+
+```yaml
+
+name: Trivy Scan Workflow
+on:
+  push:
+    branches:
+      - main # Customize this to the branch you want to trigger the action on
+
+jobs:
+  trivy-scan:
+    name: CVE Image Scan
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2 
+
+      - name: Run Trivy Scan Action
+        uses: moabukar/actions-templates/trivy-scan@main
+        with:
+          image: 'ghcr.io/${{ github.repository }}:${{ github.sha }}'  # Customize the image reference
+          exit-code: '1'  # Customize the exit code if needed
+          severity: 'HIGH,CRITICAL'  # Customize the severity if needed
+          ignore-unfixed: true  # Customize to ignore unfixed vulnerabilities if needed
+          upload-results: false  # Customize to upload results if needed
+
+        env:
+          TRIVY_USERNAME: ${{ secrets.registry-username }}  # Customize your registry username secret
+          TRIVY_PASSWORD: ${{ secrets.registry-password }}  # Customize your registry password secret
+
+
+```
