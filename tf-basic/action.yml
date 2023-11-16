@@ -27,3 +27,4 @@ jobs:
         run: |
           terraform init
           terraform ${{ github.event.inputs.tf_action_path }}
+
