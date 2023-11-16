@@ -71,3 +71,29 @@ jobs:
           REPOSITORY_NAME: your-repo-name # Customize your repository name
 
 ```
+
+
+### Markdown lint
+
+
+```yaml
+
+name: Markdown Lint Workflow
+on:
+  push:
+    branches:
+      - main  # Customize this to the branch you want to trigger the action on
+
+jobs:
+  markdown-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2  # You can use any version of checkout action
+
+      - name: Use markdown-lint action from moabukar/actions-templates
+        uses: moabukar/actions-templates/markdown-lint@main
+        with:
+          target-repo: ${{ github.repository }}
+
+```
