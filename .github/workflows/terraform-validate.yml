@@ -1,0 +1,19 @@
+name: TF validate CI
+on: [push]
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v3
+
+
+      - name: Run TF validate
+        uses: moabukar/actions-templates/terraform-validate@main
+        # with:
+        #   input1:
+        #   input2:
