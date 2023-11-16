@@ -1,0 +1,27 @@
+name: Reusable Ansible Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      playbook_path:
+        description: 'Path to the Ansible playbook'
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Ansible
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible
+
+      - name: Deploy with Ansible
+        run: |
+          ansible-playbook -i inventory.ini ${{ github.event.inputs.playbook_path }}
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: False  # Disable host key checking for simplicity
