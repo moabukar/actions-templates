@@ -1,0 +1,29 @@
+---
+name: 'Spacelift deploy action'
+description: 'Deploy'
+inputs:
+  SPACELIFT_RESOURCES_STACK_NAME:
+    description: "The Spacelift stack name used to deploy infrastructure updated via the Spacelift CLI"
+    required: true
+  SHA_TO_DEPLOY:
+    description: "The commit sha to deploy"
+    required: true
+  SPACELIFT_API_KEY_ID:
+    description: "The Spacelift API key ID used to deployment infrastructure updates via the CLI"
+    required: true
+  SPACELIFT_API_KEY_SECRET:
+    description: "The Spacelift API key secret used to deployment infrastructure updates via the CLI"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Deploy spacelift stack
+      run: |
+        export SPACELIFT_API_ENDPOINT=https://<URL-ENDPOINT>.spacelift.io/
+        export SPACELIFT_API_KEY_ID=${{ inputs.SPACELIFT_API_KEY_ID }}
+        export SPACELIFT_API_KEY_SECRET=${{ inputs.SPACELIFT_API_KEY_SECRET }}
+        wget https://github.com/spacelift-io/spacectl/releases/download/v0.7.0/spacectl_0.7.0_linux_amd64.zip -O ./spacectl.zip
+        unzip -j ./spacectl.zip spacectl -d .
+        chmod +x spacectl
+        ./spacectl stack deploy --id ${{ inputs.SPACELIFT_RESOURCES_STACK_NAME }} --sha ${{ inputs.SHA_TO_DEPLOY }} --tail
+      shell: bash
