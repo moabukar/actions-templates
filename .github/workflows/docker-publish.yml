@@ -1,0 +1,23 @@
+name: Docker Publish Workflow
+on:
+  push:
+    branches:
+      - branch # Customize this to your main branch
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Publish Docker Image
+        uses: moabukar/actions-templates/docker-publish@main
+        with:
+          ECR_REPOSITORY_NAME: <Your ECR Repository Name>
+          BASE_BRANCH: main # Customize this to your base branch
+          SHA_TO_CHECKOUT: ${{ github.sha }}
+          IMAGE_TAG_PREFIX: v1.0. # Customize the image tag prefix
+          DOCKER_FILE_PATH: ./path/to/Dockerfile # Customize the Dockerfile path
+          REPOSITORY_NAME: your-repo-name # Customize your repository name
