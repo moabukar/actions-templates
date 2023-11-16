@@ -1,0 +1,78 @@
+name: 'Publish Docker image'
+description: "Publish Docker image"
+
+inputs:
+  ECR_REPOSITORY_NAME:
+    description: "The ECR repository name where the image will be pushed to"
+    required: true
+  BASE_BRANCH:
+    description: "The branch in the repository, against which all pull requests are made"
+    required: true
+  SHA_TO_CHECKOUT:
+    description: "The Git commit sha to checkout"
+    required: true
+  IMAGE_TAG_PREFIX:
+    description: "The prefix used to prefix the ECR images with"
+    required: false
+  DOCKER_FILE_PATH:
+    description: "The directory path to the Dockerfile from which images are built"
+    required: true
+  REPOSITORY_NAME:
+    description: "The name of the repository being built - used for artifactory authentication"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check out
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ inputs.SHA_TO_CHECKOUT }}
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1-node16
+      with:
+        role-to-assume: arn:aws:iam::<ACCOUNT_ID>:role/<CUSTOM_IAM_ROLE>
+        role-session-name: "${{ inputs.ECR_REPOSITORY_NAME }}-publish-action"
+        aws-region: eu-west-1
+    - name: Build Docker image
+      shell: bash
+      run: |
+        registry="<ACCOUNT_ID>.dkr.ecr.eu-west-1.amazonaws.com"
+        service="${{ inputs.ECR_REPOSITORY_NAME }}"
+        repo="${registry}/${service}"
+        sha=${{ inputs.SHA_TO_CHECKOUT }}
+        short_sha=${sha:0:7}
+        tag="${repo}:${{ inputs.IMAGE_TAG_PREFIX }}${short_sha}"
+
+        echo "registry=${registry}" >> $GITHUB_ENV
+        echo "tag=${tag}" >> $GITHUB_ENV
+
+        aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin $registry
+
+        function docker_tag_exists() {
+          docker manifest inspect $tag > /dev/null
+        }
+
+        if docker_tag_exists; then
+          echo "Tag already exists"
+        else
+          docker build -f ${{ inputs.DOCKER_FILE_PATH }}/Dockerfile -t $tag . --build-arg packages_token="${{ steps.artifactory-auth.outputs.auth-token }}" --build-arg packages_username="${{ steps.artifactory-auth.outputs.auth-username }}"
+          docker image inspect $tag
+          docker image save $tag > img.tar
+          tar -xvf img.tar
+        fi
+    - name: Antivirus Scan
+      if: github.ref == format('refs/heads/{0}', inputs.BASE_BRANCH)
+      uses: djdefi/gitavscan@4
+    - name: Publish image to ECR
+      shell: bash
+      run: |
+        aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin ${{ env.registry }}
+        function docker_tag_exists() {
+          docker manifest inspect $tag > /dev/null
+        }
+        if docker_tag_exists; then
+          echo "Tag already exists"
+        else
+          docker push ${{ env.tag }}
+        fi
