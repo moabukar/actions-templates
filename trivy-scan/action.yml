@@ -72,3 +72,4 @@ jobs:
         if: always() && inputs.upload-results
         with:
           sarif_file: 'trivy-results.sarif'
+
