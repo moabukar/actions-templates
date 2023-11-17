@@ -17,9 +17,6 @@ inputs:
   DOCKER_FILE_PATH:
     description: "The directory path to the Dockerfile from which images are built"
     required: true
-  REPOSITORY_NAME:
-    description: "The name of the repository being built - used for artifactory authentication"
-    required: true
 
 runs:
   using: "composite"
@@ -56,7 +53,7 @@ runs:
         if docker_tag_exists; then
           echo "Tag already exists"
         else
-          docker build -f ${{ inputs.DOCKER_FILE_PATH }}/Dockerfile -t $tag . --build-arg packages_token="${{ steps.artifactory-auth.outputs.auth-token }}" --build-arg packages_username="${{ steps.artifactory-auth.outputs.auth-username }}"
+          docker build -f ${{ inputs.DOCKER_FILE_PATH }}/Dockerfile -t $tag . 
           docker image inspect $tag
           docker image save $tag > img.tar
           tar -xvf img.tar
